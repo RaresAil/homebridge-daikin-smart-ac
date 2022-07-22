@@ -10,6 +10,13 @@
         "type": "string",
         "required": true,
         "default": "Daikin Smart ACs"
+      },
+      "ips": {
+        "type": "array",
+        "items": {
+          "title": "IP Addresses",
+          "type": "string"
+        }
       }
     }
   }

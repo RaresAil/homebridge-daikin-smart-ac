@@ -5,6 +5,7 @@ import {
   Logger,
   Service
 } from 'homebridge';
+import { DaikinAC } from './DaikinAC';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { Config } from './types/Config';
 
@@ -24,13 +25,30 @@ export class Platform implements DynamicPlatformPlugin {
     public readonly api: API
   ) {
     this.api.on('didFinishLaunching', () => {
-      // 'DidFinishLaunching'
+      this.discoverDevices();
     });
   }
 
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
     this.cachedAccessories.push(accessory);
+  }
+
+  private discoverDevices() {
+    if (!this.config.ips) {
+      return;
+    }
+
+    Array.from(new Set(this.config.ips)).forEach(async (ip: string) => {
+      const daikinAC = new DaikinAC(this.log, ip);
+      const success = await daikinAC.setup();
+      if (!success) {
+        this.log.warn(`Failed to setup Daikin AC (${ip})`);
+        return;
+      }
+
+      this.log.info(`Successfully setup Daikin AC (${ip})`);
+    });
   }
 
   // private checkOldDevices() {
