@@ -4,7 +4,8 @@ import axios from 'axios';
 import { Status } from './types/Status';
 
 export class DaikinAC {
-  private readonly controlInfoUrl: URL;
+  private readonly getControlInfoUrl: URL;
+  private readonly setControlInfoUrl: URL;
   private readonly sensorInfoUrl: URL;
 
   private status: Status = new Status();
@@ -14,7 +15,8 @@ export class DaikinAC {
   }
 
   constructor(private readonly log: Logger, ip: string) {
-    this.controlInfoUrl = new URL(`http://${ip}/aircon/get_control_info`);
+    this.setControlInfoUrl = new URL(`http://${ip}/aircon/set_control_info`);
+    this.getControlInfoUrl = new URL(`http://${ip}/aircon/get_control_info`);
     this.sensorInfoUrl = new URL(`http://${ip}/aircon/get_sensor_info`);
   }
 
@@ -26,7 +28,7 @@ export class DaikinAC {
     try {
       const [cInfo, sInfo] = (
         await Promise.all([
-          axios.get(this.controlInfoUrl.toString()),
+          axios.get(this.getControlInfoUrl.toString()),
           axios.get(this.sensorInfoUrl.toString())
         ])
       ).map((response) => response.data);
@@ -56,6 +58,22 @@ export class DaikinAC {
       this.status.update(controlInfo, sensorInfo);
 
       return this.status.wasSuccessUpdate;
+    } catch (error) {
+      this.log.error(error as string);
+      return false;
+    }
+  }
+
+  public async saveControlInfo(): Promise<boolean> {
+    try {
+      const response = await axios.get(
+        `${this.setControlInfoUrl.toString()}?${this.status.toParams()}`
+      );
+
+      const isSuccess =
+        response.data?.split(',')?.[0]?.split('=')?.[1] === 'OK';
+
+      return isSuccess;
     } catch (error) {
       this.log.error(error as string);
       return false;
