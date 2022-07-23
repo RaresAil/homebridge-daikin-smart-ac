@@ -2,7 +2,7 @@ import { API, Characteristic, Logger } from 'homebridge';
 import AsyncLock from 'async-lock';
 import axios from 'axios';
 
-import { FanSpeed, Mode, Status } from './types/Status';
+import { FanDirection, FanSpeed, Mode, Status } from './types/Status';
 
 export class DaikinAC {
   private readonly lock = new AsyncLock();
@@ -14,8 +14,11 @@ export class DaikinAC {
   private readonly getControlInfoUrl: URL;
   private readonly setControlInfoUrl: URL;
   private readonly sensorInfoUrl: URL;
+  private readonly basicInfo: URL;
 
   private status: Status = new Status();
+  private defaultName = 'DaikinAC';
+  private mac = 'UNKNOWN';
 
   public readonly MAX_COOLING_TEMPERATURE = 32;
   public readonly MIN_COOLING_TEMPERATURE = 18;
@@ -31,18 +34,66 @@ export class DaikinAC {
     return this.status.clone();
   }
 
+  public get DefaultName(): string {
+    return this.defaultName.toString();
+  }
+
+  public get MAC(): string {
+    return this.mac.toString();
+  }
+
   constructor(
     private readonly log: Logger,
     private readonly api: API,
     public readonly ip: string
   ) {
     this.UUID = this.api.hap.uuid.generate(ip);
+
+    this.basicInfo = new URL(`http://${ip}/common/basic_info`);
+
     this.setControlInfoUrl = new URL(`http://${ip}/aircon/set_control_info`);
     this.getControlInfoUrl = new URL(`http://${ip}/aircon/get_control_info`);
     this.sensorInfoUrl = new URL(`http://${ip}/aircon/get_sensor_info`);
   }
 
   public async setup(): Promise<boolean> {
+    const success = await this.lock.acquire('api', async () => {
+      try {
+        this.log.debug(`[${this.ip}] Getting device info`);
+
+        const bInfo = (await axios.get(this.basicInfo.toString()))?.data;
+        this.log.debug(`[${this.ip}] Raw response BASIC: (${bInfo})`);
+
+        const basicInfoRaw: string[] = bInfo?.split(',');
+        if (basicInfoRaw.length <= 1) {
+          return false;
+        }
+
+        const basicInfo = this.rawToObject(basicInfoRaw);
+
+        if (basicInfo.ret !== 'OK') {
+          return false;
+        }
+
+        const { type, name, mac } = basicInfo;
+        if (type !== 'aircon') {
+          return false;
+        }
+
+        this.defaultName = decodeURIComponent(name);
+        this.mac = this.formatMAC(mac);
+
+        return true;
+      } catch (error) {
+        this.log.error(error as string);
+        return false;
+      }
+    });
+
+    if (!success) {
+      return false;
+    }
+
     return this.getControlInfo();
   }
 
@@ -53,7 +104,7 @@ export class DaikinAC {
           return true;
         }
 
-        this.log.debug(`[${this.ip}] Getting device info`);
+        this.log.debug(`[${this.ip}] Getting device control info`);
 
         const [cInfo, sInfo] = (
           await Promise.all([
@@ -71,17 +122,8 @@ export class DaikinAC {
           return false;
         }
 
-        const rawToObject = (raw: string[]): Record<string, string> =>
-          raw.reduce((acc, item) => {
-            const [key, value] = item.split('=');
-            return {
-              ...acc,
-              [key]: value
-            };
-          }, {});
-
-        const controlInfo = rawToObject(controlInfoRaw);
-        const sensorInfo = rawToObject(sensorInfoRaw);
+        const controlInfo = this.rawToObject(controlInfoRaw);
+        const sensorInfo = this.rawToObject(sensorInfoRaw);
 
         if (controlInfo.ret !== 'OK' || sensorInfo.ret !== 'OK') {
           return false;
@@ -121,6 +163,27 @@ export class DaikinAC {
         return false;
       }
     });
+  }
+
+  private rawToObject(raw: string[]): Record<string, string> {
+    return raw.reduce((acc, item) => {
+      const [key, value] = item.split('=');
+      return {
+        ...acc,
+        [key]: value
+      };
+    }, {});
+  }
+
+  private formatMAC(value: string) {
+    const len = value.length / 2;
+    let mac = '';
+
+    for (let i = 0; i < len; i++) {
+      mac += value.slice(i * 2, i * 2 + 2) + (i < len - 1 ? ':' : '');
+    }
+
+    return mac;
   }
 
   public get TargetHeaterCoolerState(): number {
@@ -252,5 +315,25 @@ export class DaikinAC {
         this.status.fanSpeed = FanSpeed.Auto;
         break;
     }
+  }
+
+  public get SwingMode(): number {
+    switch (this.status.fanDirection) {
+      case FanDirection.Vertical:
+      case FanDirection.Horizontal:
+      case FanDirection.VerticalAndHorizontal:
+        return this.Characteristic.SwingMode.SWING_ENABLED;
+      default:
+        return this.Characteristic.SwingMode.SWING_DISABLED;
+    }
+  }
+
+  public set SwingMode(value: number) {
+    if (value === this.Characteristic.SwingMode.SWING_ENABLED) {
+      this.status.fanDirection = FanDirection.Vertical;
+      return;
+    }
+
+    this.status.fanDirection = FanDirection.Off;
   }
 }

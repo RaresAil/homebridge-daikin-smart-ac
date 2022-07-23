@@ -65,23 +65,28 @@ export class Platform implements DynamicPlatformPlugin {
   }
 
   private checkOldDevices() {
-    // this.cachedAccessories.map((accessory) => {
-    //   try {
-    //     const exists = this.registeredDevices.find(
-    //       (device) => device.UUID === accessory.UUID
-    //     );
-    //     if (!exists) {
-    //       this.log.info('Remove cached accessory:', accessory.displayName);
-    //       this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
-    //         accessory
-    //       ]);
-    //     }
-    //   } catch (error: any) {
-    //     this.log.error(
-    //       `Error for device: ${accessory.displayName} | ${error?.message}`
-    //     );
-    //   }
-    // });
+    this.cachedAccessories.map((accessory) => {
+      try {
+        if (!accessory.context?.ip) {
+          return;
+        }
+
+        const exists = this.config.ips?.find(
+          (ip) => ip === accessory.context?.ip
+        );
+
+        if (!exists) {
+          this.log.info('Remove cached accessory:', accessory.displayName);
+          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
+            accessory
+          ]);
+        }
+      } catch (error: any) {
+        this.log.error(
+          `Error for device: ${accessory.displayName} | ${error?.message}`
+        );
+      }
+    });
   }
 
   private cleanAccessories() {
@@ -118,6 +123,7 @@ export class Platform implements DynamicPlatformPlugin {
 
         existingAccessory.context = {
           name: existingAccessory.displayName,
+          ip: daikinAC.ip,
           daikinAC
         };
 
@@ -127,12 +133,13 @@ export class Platform implements DynamicPlatformPlugin {
 
       this.log.info('Adding new accessory:', daikinAC.ip);
       const accessory = new this.api.platformAccessory<AccessoryContext>(
-        'Daikin AC',
+        daikinAC.DefaultName,
         daikinAC.UUID
       );
 
       accessory.context = {
         name: accessory.displayName,
+        ip: daikinAC.ip,
         daikinAC
       };
 

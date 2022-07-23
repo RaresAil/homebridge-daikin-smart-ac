@@ -1,6 +1,6 @@
 {
   "files.eol": "\n",
-  "cSpell.words": ["accountid", "appversion", "daikin"],
+  "cSpell.words": ["accountid", "aircon", "appversion", "daikin"],
   "eslint.options": {
     "overrideConfig": {
       "rules": {

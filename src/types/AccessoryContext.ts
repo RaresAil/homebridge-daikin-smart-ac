@@ -1,6 +1,7 @@
 import { DaikinAC } from '../DaikinAC';
 
 export interface AccessoryContext {
-  name: string;
   daikinAC: DaikinAC;
+  name: string;
+  ip: string;
 }

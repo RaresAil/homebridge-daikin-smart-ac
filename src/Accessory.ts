@@ -10,6 +10,7 @@ import CurrentTemperature from './characteristics/CurrentTemperature';
 import RotationSpeed from './characteristics/RotationSpeed';
 import CurrentState from './characteristics/CurrentState';
 import TargetState from './characteristics/TargetState';
+import SwingMode from './characteristics/SwingMode';
 import Active from './characteristics/Active';
 
 export type AccessoryThisType = ThisType<{
@@ -38,7 +39,7 @@ export class Accessory {
         .setCharacteristic(this.platform.Characteristic.Model, 'WifiAdapter')
         .setCharacteristic(
           this.platform.Characteristic.SerialNumber,
-          this.daikinAC.UUID
+          this.daikinAC.MAC
         );
 
       this.heaterCoolerService =
@@ -96,6 +97,11 @@ export class Accessory {
         })
         .onGet(RotationSpeed.get.bind(this))
         .onSet(RotationSpeed.set.bind(this));
+
+      this.heaterCoolerService
+        .getCharacteristic(this.platform.Characteristic.SwingMode)
+        .onGet(SwingMode.get.bind(this))
+        .onSet(SwingMode.set.bind(this));
     } catch (error: any) {
       this.platform.log.error(`Failed to setup accessory: ${error?.message}`);
     }
