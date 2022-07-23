@@ -7,6 +7,7 @@ import { DaikinAC } from './DaikinAC';
 import CoolingThresholdTemperature from './characteristics/CoolingThresholdTemperature';
 import HeatingThresholdTemperature from './characteristics/HeatingThresholdTemperature';
 import CurrentTemperature from './characteristics/CurrentTemperature';
+import RotationSpeed from './characteristics/RotationSpeed';
 import CurrentState from './characteristics/CurrentState';
 import TargetState from './characteristics/TargetState';
 import Active from './characteristics/Active';
@@ -85,6 +86,16 @@ export class Accessory {
         })
         .onGet(HeatingThresholdTemperature.get.bind(this))
         .onSet(HeatingThresholdTemperature.set.bind(this));
+
+      this.heaterCoolerService
+        .getCharacteristic(this.platform.Characteristic.RotationSpeed)
+        .setProps({
+          minValue: 0,
+          maxValue: this.daikinAC.MAX_SPEED,
+          validValueRanges: [0, this.daikinAC.MAX_SPEED]
+        })
+        .onGet(RotationSpeed.get.bind(this))
+        .onSet(RotationSpeed.set.bind(this));
     } catch (error: any) {
       this.platform.log.error(`Failed to setup accessory: ${error?.message}`);
     }

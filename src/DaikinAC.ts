@@ -2,7 +2,7 @@ import { API, Characteristic, Logger } from 'homebridge';
 import AsyncLock from 'async-lock';
 import axios from 'axios';
 
-import { Mode, Status } from './types/Status';
+import { FanSpeed, Mode, Status } from './types/Status';
 
 export class DaikinAC {
   private readonly lock = new AsyncLock();
@@ -22,6 +22,9 @@ export class DaikinAC {
 
   public readonly MAX_HEATING_TEMPERATURE = 30;
   public readonly MIN_HEATING_TEMPERATURE = 10;
+
+  public readonly MAX_SPEED = 6;
+
   public readonly UUID: string;
 
   public get acStatus(): Status {
@@ -206,5 +209,48 @@ export class DaikinAC {
 
   public get CurrentTemperature(): number {
     return this.status.roomTemperature ?? 0;
+  }
+
+  public get RotationSpeed(): number {
+    switch (this.status.fanSpeed) {
+      case FanSpeed.S1:
+        return 2;
+      case FanSpeed.S2:
+        return 3;
+      case FanSpeed.S3:
+        return 4;
+      case FanSpeed.S4:
+        return 5;
+      case FanSpeed.S5:
+        return 6;
+      default:
+        return 1;
+    }
+  }
+
+  public set RotationSpeed(value: number) {
+    switch (value) {
+      case 1:
+        this.status.fanSpeed = FanSpeed.Night;
+        break;
+      case 2:
+        this.status.fanSpeed = FanSpeed.S1;
+        break;
+      case 3:
+        this.status.fanSpeed = FanSpeed.S2;
+        break;
+      case 4:
+        this.status.fanSpeed = FanSpeed.S3;
+        break;
+      case 5:
+        this.status.fanSpeed = FanSpeed.S4;
+        break;
+      case 6:
+        this.status.fanSpeed = FanSpeed.S5;
+        break;
+      default:
+        this.status.fanSpeed = FanSpeed.Auto;
+        break;
+    }
   }
 }

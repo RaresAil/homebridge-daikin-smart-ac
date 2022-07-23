@@ -16,10 +16,12 @@ const characteristic: {
     return this.daikinAC.TargetHeaterCoolerState;
   },
   set: async function (value: CharacteristicValue) {
-    if (value !== this.daikinAC.TargetHeaterCoolerState) {
+    const state = parseInt(value.toString(), 10);
+
+    if (state !== this.daikinAC.TargetHeaterCoolerState) {
       const prevValue = this.daikinAC.TargetHeaterCoolerState;
 
-      this.daikinAC.TargetHeaterCoolerState = parseInt(value.toString(), 10);
+      this.daikinAC.TargetHeaterCoolerState = state;
       const success = await this.daikinAC.saveControlInfo();
       if (!success) {
         this.daikinAC.TargetHeaterCoolerState = prevValue;

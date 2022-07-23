@@ -13,18 +13,17 @@ const characteristic: {
 } & AccessoryThisType = {
   get: async function (): Promise<Nullable<CharacteristicValue>> {
     await this.daikinAC.getControlInfo();
-    return this.daikinAC.HeatingThresholdTemperature;
+    return this.daikinAC.RotationSpeed;
   },
   set: async function (value: CharacteristicValue) {
-    const temperature = parseFloat(value.toString());
+    const speed = parseInt(value.toString(), 10);
+    if (speed !== this.daikinAC.RotationSpeed) {
+      const prevValue = this.daikinAC.RotationSpeed;
 
-    if (temperature !== this.daikinAC.HeatingThresholdTemperature) {
-      const prevValue = this.daikinAC.HeatingThresholdTemperature;
-
-      this.daikinAC.HeatingThresholdTemperature = temperature;
+      this.daikinAC.RotationSpeed = speed;
       const success = await this.daikinAC.saveControlInfo();
       if (!success) {
-        this.daikinAC.HeatingThresholdTemperature = prevValue;
+        this.daikinAC.RotationSpeed = prevValue;
       }
     }
   }

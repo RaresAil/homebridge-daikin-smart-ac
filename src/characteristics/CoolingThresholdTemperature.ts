@@ -16,13 +16,12 @@ const characteristic: {
     return this.daikinAC.CoolingThresholdTemperature;
   },
   set: async function (value: CharacteristicValue) {
-    if (value !== this.daikinAC.CoolingThresholdTemperature) {
+    const temperature = parseFloat(value.toString());
+
+    if (temperature !== this.daikinAC.CoolingThresholdTemperature) {
       const prevValue = this.daikinAC.CoolingThresholdTemperature;
 
-      this.daikinAC.CoolingThresholdTemperature = parseInt(
-        value.toString(),
-        10
-      );
+      this.daikinAC.CoolingThresholdTemperature = temperature;
       const success = await this.daikinAC.saveControlInfo();
       if (!success) {
         this.daikinAC.CoolingThresholdTemperature = prevValue;

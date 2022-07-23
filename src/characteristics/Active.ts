@@ -17,9 +17,11 @@ const characteristic: {
     return this.daikinAC.Active;
   },
   set: async function (value: CharacteristicValue) {
-    if (value !== this.daikinAC.Active) {
+    const active = parseInt(value.toString(), 10);
+
+    if (active !== this.daikinAC.Active) {
       const prevValue = this.daikinAC.Active;
-      this.daikinAC.Active = parseInt(value.toString(), 10);
+      this.daikinAC.Active = active;
       const success = await this.daikinAC.saveControlInfo();
 
       if (!success) {
