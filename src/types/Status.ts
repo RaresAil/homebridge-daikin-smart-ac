@@ -143,6 +143,12 @@ export class Status {
     return params.toString();
   }
 
+  public clone(): Status {
+    const copy = new (this.constructor as { new (): Status })();
+    Object.assign(copy, this);
+    return copy;
+  }
+
   private mirrorObj = (obj: Record<string, string>): Record<string, string> => {
     return Object.entries(obj).reduce((acc, [key, value]) => {
       return {

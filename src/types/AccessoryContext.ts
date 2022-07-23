@@ -1,3 +1,6 @@
+import { DaikinAC } from '../DaikinAC';
+
 export interface AccessoryContext {
-  test: string;
+  name: string;
+  daikinAC: DaikinAC;
 }
