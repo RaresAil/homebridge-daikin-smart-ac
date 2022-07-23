@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "DaikinSmartAc",
+  "pluginAlias": "DaikinSmartAC",
   "pluginType": "platform",
   "singular": true,
   "schema": {

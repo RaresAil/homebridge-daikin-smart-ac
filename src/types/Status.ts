@@ -8,7 +8,6 @@ export enum Mode {
 }
 
 export enum FanSpeed {
-  Auto,
   Night,
   S1,
   S2,
@@ -58,7 +57,7 @@ export class Status {
   };
 
   private readonly FAN_SPEEDS = {
-    A: FanSpeed.Auto,
+    A: FanSpeed.Night, // This is Auto but it's not supported by HomeKit
     B: FanSpeed.Night,
     '3': FanSpeed.S1,
     '4': FanSpeed.S2,

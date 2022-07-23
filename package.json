@@ -1,8 +1,8 @@
 {
-  "displayName": "DaikinSmartAc",
+  "displayName": "DaikinSmartAC",
   "name": "homebridge-daikin-smart-ac",
   "version": "1.0.0",
-  "description": "WIP",
+  "description": "A Homebridge plugin for Daikin Wifi Adapter AC using Local API",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -24,7 +24,16 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "homebridge-daikin-smart-ac",
+    "daikin",
+    "wifi",
+    "adapter",
+    "ac",
+    "air-conditioner",
+    "air-conditioner-daikin",
+    "homekit",
+    "local"
   ],
   "resolutions": {
     "minimist": "^1.2.6"

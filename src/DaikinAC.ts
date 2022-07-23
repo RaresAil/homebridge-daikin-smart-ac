@@ -216,14 +216,11 @@ export class DaikinAC {
       return this.Characteristic.CurrentHeaterCoolerState.INACTIVE;
     }
 
-    switch (this.status.mode) {
-      case Mode.Heat:
-        return this.Characteristic.CurrentHeaterCoolerState.HEATING;
-      case Mode.Cool:
-        return this.Characteristic.CurrentHeaterCoolerState.COOLING;
-      default:
-        return this.Characteristic.CurrentHeaterCoolerState.IDLE;
+    if (this.status.mode === Mode.Heat) {
+      return this.Characteristic.CurrentHeaterCoolerState.HEATING;
     }
+
+    return this.Characteristic.CurrentHeaterCoolerState.COOLING;
   }
 
   public get Active(): number {
@@ -293,9 +290,6 @@ export class DaikinAC {
 
   public set RotationSpeed(value: number) {
     switch (value) {
-      case 1:
-        this.status.fanSpeed = FanSpeed.Night;
-        break;
       case 2:
         this.status.fanSpeed = FanSpeed.S1;
         break;
@@ -312,7 +306,7 @@ export class DaikinAC {
         this.status.fanSpeed = FanSpeed.S5;
         break;
       default:
-        this.status.fanSpeed = FanSpeed.Auto;
+        this.status.fanSpeed = FanSpeed.Night;
         break;
     }
   }
